@@ -69,7 +69,7 @@ public class PhotoAlbumAdapter extends RecyclerView.Adapter<PhotoAlbumAdapter.Vi
         }
 
     public interface OnItemClickListener {
-        public void onItemClick(View view, int position);
+        void onItemClick(View view, int position);
     }
     public void SetOnItemClickListener(final OnItemClickListener m){
         mClickListener=m;
