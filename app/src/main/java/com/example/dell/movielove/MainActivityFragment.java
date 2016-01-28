@@ -1,8 +1,13 @@
 package com.example.dell.movielove;
 
 import android.content.Intent;
+<<<<<<< HEAD
 import android.net.Uri;
+=======
+>>>>>>> 191fd9d345afba74a8550048d03f4de034cf1015
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+<<<<<<< HEAD
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -25,6 +31,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+=======
+>>>>>>> 191fd9d345afba74a8550048d03f4de034cf1015
 import java.util.ArrayList;
 
 /**
@@ -32,6 +40,7 @@ import java.util.ArrayList;
  */
 public class MainActivityFragment extends Fragment implements PhotoAlbumAdapter.OnItemClickListener {
 
+<<<<<<< HEAD
     private static final String STATE_MOVIE = "state_movie" ;
              boolean isTablet=false;
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
@@ -46,6 +55,19 @@ public class MainActivityFragment extends Fragment implements PhotoAlbumAdapter.
     String API = "api_key";
     String SORT="sort_by";
     String url;
+=======
+    String choice1;
+    String[] resultStrs1;
+    String[] movie_title1;
+    String[] movie_plot1;
+    String[] user_rating1;
+    String[] release_date1;
+    private RecyclerView recyclerView;
+    private RecyclerView.LayoutManager layoutManager;
+    PhotoAlbumAdapter mAdapter;
+    Handler h;
+
+>>>>>>> 191fd9d345afba74a8550048d03f4de034cf1015
     public MainActivityFragment() {
     }
 
@@ -228,11 +250,21 @@ requestQueue=volleySingleton.getRequestQueue();
 
 
 
+<<<<<<< HEAD
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(STATE_MOVIE, list_movie);
+=======
+        registerForContextMenu(recyclerView);
+        updateMovie("vote_count.desc");
+        return rootView;
+    }
+
+    private void updateMovie(String c) {
+        new FetchMoviePoster(new MyHandler()).execute(c);
+>>>>>>> 191fd9d345afba74a8550048d03f4de034cf1015
     }
 
     @Override
@@ -246,6 +278,7 @@ requestQueue=volleySingleton.getRequestQueue();
     @Override
     public void onItemClick(View view, int position) {
         Log.v("Actual position", Integer.toString(position));
+<<<<<<< HEAD
 
 
         Movie m=list_movie.get(position);
@@ -283,6 +316,33 @@ requestQueue=volleySingleton.getRequestQueue();
         url = builder.toString();
         return url;
     }
+=======
+        Intent detail= new Intent(getActivity(),DetailActivity.class);
+        detail.putExtra("position",position);
+        detail.putExtra("poster", resultStrs1);
+
+        detail.putExtra("title", movie_title1);
+        detail.putExtra("plot", movie_plot1);
+        detail.putExtra("user_rating", user_rating1);
+        detail.putExtra("release", release_date1);
+        startActivity(detail);
+    }
+
+
+    private class MyHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            Bundle c=msg.getData();
+            c.setClassLoader(ClassLoader.getSystemClassLoader());
+            resultStrs1=c.getStringArray("result");
+             movie_title1=c.getStringArray("movie_title");
+            movie_plot1=c.getStringArray("movie_plot");
+            user_rating1=c.getStringArray("user_rating");
+            release_date1=c.getStringArray("release date");
+            mAdapter = new PhotoAlbumAdapter(new ArrayList<>(Arrays.asList(resultStrs1)), getContext());
+            recyclerView.setAdapter(mAdapter);
+            mAdapter.SetOnItemClickListener(MainActivityFragment.this);
+>>>>>>> 191fd9d345afba74a8550048d03f4de034cf1015
 
     public void isTwoPain(boolean mTwoPane) {
         isTablet=mTwoPane;
