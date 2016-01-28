@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CLOSE"
+        android:id="@+id/close_it"
+        android:layout_gravity="right" />
+
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/popup">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="3sp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/error_review"
+                android:textColor="#fff"
+                android:layout_margin="5sp"
+                android:background="#f06292"
+                android:id="@+id/review1" />
+
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text=" "
+                android:background="#ba68c8"
+                android:textColor="#fff"
+                android:layout_margin="5sp"
+                android:id="@+id/review2" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="  "
+                android:textColor="#fff"
+                android:background="#f44336"
+                android:layout_margin="5sp"
+                android:id="@+id/review3" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

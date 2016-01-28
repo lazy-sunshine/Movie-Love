@@ -6,4 +6,9 @@
     <string name="overview">OVERVIEW</string>
     <string name="release">RELEASE</string>
     <string name="rating">RATING</string>
+    <string name="error_review">OOps No Review !!!</string>
+    <string name="add">Favourite</string>
+    <string name="title_activity_favourite">FavouriteActivity</string>
+    <string name="add_to_favourite">Collection</string>
+    <string name="delete">Delete</string>
 </resources>

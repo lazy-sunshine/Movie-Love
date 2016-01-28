@@ -2,7 +2,6 @@ package com.example.dell.movielove;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -16,33 +15,37 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * A placeholder fragment containing a simple view.
  */
 public class MainActivityFragment extends Fragment implements PhotoAlbumAdapter.OnItemClickListener {
 
+    private static final String STATE_MOVIE = "state_movie" ;
+             boolean isTablet=false;
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
+
     private RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
     PhotoAlbumAdapter mAdapter;
- String choice;
-    String[] resultStrs;
-    String[] movie_title;
-    String[] movie_plot;
-    String[] user_rating;
-    String[] release_date;
+    VolleySingleton volleySingleton;
+    RequestQueue requestQueue;
+    ArrayList<Movie>list_movie=new ArrayList();
+
+    String API = "api_key";
+    String SORT="sort_by";
+    String url;
     public MainActivityFragment() {
     }
 
@@ -51,12 +54,146 @@ public class MainActivityFragment extends Fragment implements PhotoAlbumAdapter.
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+ volleySingleton= VolleySingleton.getInstance();
+requestQueue=volleySingleton.getRequestQueue();
+
+
+    }
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+
+
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.recyle_view);
+        recyclerView.setHasFixedSize(true);
+        layoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
+
+        recyclerView.setLayoutManager(layoutManager);
+
+
+        registerForContextMenu(recyclerView);
+
+        mAdapter = new PhotoAlbumAdapter(getActivity());
+
+        recyclerView.setAdapter(mAdapter);
+        mAdapter.SetOnItemClickListener(MainActivityFragment.this);
+        if(savedInstanceState !=null){
+            list_movie=savedInstanceState.getParcelableArrayList(STATE_MOVIE);
+            mAdapter.setMovie(list_movie);
+        }
+
+        fetch_movie("vote_count.desc");
+
+        return rootView;
+    }
+
+    private void fetch_movie(String choice) {
+        url= geturl(choice);
+
+        sendJSonRequest();
+    }
+
+
+    private void sendJSonRequest() {
+        JsonObjectRequest request=new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+
+                  list_movie=  parseJsonRequest(response);
+                    mAdapter.setMovie(list_movie);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        requestQueue.add(request);
+
+    }
+
+
+
+    private ArrayList<Movie> parseJsonRequest(JSONObject response) throws JSONException {
+        ArrayList<Movie> list_movie=new ArrayList<>();
+        if(response ==null ||response.length()==0) return list_movie;
+
+        final String OWM_POSTER = "results";
+        final String FILE_PATH = "poster_path";
+        final String ORIGINAL_TITLE="original_title";
+        final String OVERVIEW="overview";
+        final String User_RATING="vote_average";
+        final String RELEASE="release_date";
+        final String ID="id";
+
+
+        JSONArray movieArray = response.getJSONArray(OWM_POSTER);
+
+        for (int i = 0; i < movieArray.length(); i++) {
+
+            JSONObject movie = movieArray.getJSONObject(i);
+
+               String   file_name = movie.getString(FILE_PATH);
+               String id=movie.getString(ID);
+
+               String title = movie.getString(ORIGINAL_TITLE);
+
+
+              String  plot = movie.getString(OVERVIEW);
+
+
+              String  userRating = movie.getString(User_RATING);
+
+
+              String  release = movie.getString(RELEASE);
+       String video="videos";
+           String resultStrs = "http://image.tmdb.org/t/p/w185/" +file_name;
+            Uri fetch_video = Uri.parse("http://api.themoviedb.org/3/movie/");
+            Uri builder_video = fetch_video.buildUpon().
+                    appendPath(id)
+                    .appendEncodedPath(video)
+            .appendQueryParameter(API, BuildConfig.THE_MOVIE_DB_API_KEY).build();
+
+            String url_video = builder_video.toString();
+
+            Uri fetch_review = Uri.parse("http://api.themoviedb.org/3/movie/");
+            Uri builder_review = fetch_review.buildUpon().
+                    appendPath(id)
+                    .appendEncodedPath("reviews")
+                    .appendQueryParameter(API, BuildConfig.THE_MOVIE_DB_API_KEY).build();
+            String url_review = builder_review.toString();
+
+            Log.v("Url is ", url_video);
+            Movie m=new Movie();
+            m.id=Long.parseLong(id);
+            m.poster=resultStrs;
+            m.movie_title=title;
+            m.movie_plot=plot;
+            m.user_rating=userRating;
+            m.release_date=release;
+            m.video= url_video;
+            m.review=url_review;
+            list_movie.add(m);
+        }
+
+        return list_movie;
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 
         inflater.inflate(R.menu.movie_sort, menu);
+
+
     }
 
     @Override
@@ -68,11 +205,18 @@ public class MainActivityFragment extends Fragment implements PhotoAlbumAdapter.
             return true;
         }
         if(id== R.id.pop){
-            updateMovie("popularity.desc");
+            fetch_movie("popularity.desc");
+
             return true;
         }
         if(id== R.id.vote){
-            updateMovie("vote_average.desc");
+            fetch_movie("vote_average.desc");
+
+            return true;
+        }
+        if(id== R.id.action_collection){
+            Intent i=new Intent(getActivity(),FavouriteActivity.class);
+            startActivity(i);
             return true;
         }
 
@@ -83,25 +227,12 @@ public class MainActivityFragment extends Fragment implements PhotoAlbumAdapter.
 
 
 
+
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.recyle_view);
-        recyclerView.setHasFixedSize(true);
-        layoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
-
-        recyclerView.setLayoutManager(layoutManager);
-
-
-        registerForContextMenu(recyclerView);
-            updateMovie("vote_count.desc");
-        return rootView;
-    }
-
-    private void updateMovie(String c) {
-        new FetchMoviePoster().execute(c);
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(STATE_MOVIE, list_movie);
     }
 
     @Override
@@ -115,139 +246,45 @@ public class MainActivityFragment extends Fragment implements PhotoAlbumAdapter.
     @Override
     public void onItemClick(View view, int position) {
         Log.v("Actual position", Integer.toString(position));
-       Intent detail= new Intent(getActivity(),DetailActivity.class);
-        detail.putExtra("position",position);
-        detail.putExtra("poster", resultStrs);
 
-        detail.putExtra("title", movie_title);
-        detail.putExtra("plot", movie_plot);
-        detail.putExtra("user_rating", user_rating);
-        detail.putExtra("release", release_date);
-        startActivity(detail);
+
+        Movie m=list_movie.get(position);
+        if(isTablet==true){
+            Log.v("MainFragment","Double pane");
+            Bundle args=new Bundle();
+            args.putParcelable(DetailActivityFragment.DETAIL_URI, m);
+
+            DetailActivityFragment frag=new DetailActivityFragment();
+            frag.setArguments(args);
+            Log.v("Woooooo", "oop");
+            getFragmentManager().beginTransaction().
+                    replace(R.id.fragment_detail_movie,frag,DETAILFRAGMENT_TAG).commit();
+            Log.v("------","ggg");
+        }
+        else {
+            Log.v("MainFragment","Single pane");
+            Intent detail = new Intent(getActivity(), DetailActivity.class);
+
+            detail.putExtra("details", m);  //used putExtra coz setdata() support only uri
+
+
+            startActivity(detail);
+        }
     }
 
 
 
-    public class FetchMoviePoster extends AsyncTask<String, Void, String[]> {
-        private final String LOG_TAG = FetchMoviePoster.class.getSimpleName();
+    private String geturl(String choice) {
+        String  url;
+        Uri fetch_url = Uri.parse("http://api.themoviedb.org/3/discover/movie?");
+        Uri builder = fetch_url.buildUpon().
+                appendQueryParameter(SORT,choice)
+                .appendQueryParameter(API, BuildConfig.THE_MOVIE_DB_API_KEY).build();
+        url = builder.toString();
+        return url;
+    }
 
-
-        @Override
-        protected String[] doInBackground(String... code) {
-
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String[] image_poster = new String[0];
-            String API = "api_key";
-            String SORT="sort_by";
-
-            choice=code[0];
-            String forecastJsonStr = null;
-
-            try {
-                Uri fetch_url = Uri.parse("http://api.themoviedb.org/3/discover/movie?");
-                Uri builder = fetch_url.buildUpon().
-                        appendQueryParameter(SORT,choice)
-                        .appendQueryParameter(API, BuildConfig.THE_MOVIE_DB_API_KEY).build();
-                URL url = new URL(builder.toString());
-
-
-
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "/n");
-                }
-
-                if (buffer.length() == 0) {
-                    return null;
-                }
-                forecastJsonStr = buffer.toString();
-
-
-                try {
-                    image_poster = getUrlForImage(forecastJsonStr);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attempting
-                // to parse it.
-                forecastJsonStr = null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
-            }
-            return image_poster;
-        }
-
-        private String[] getUrlForImage(String forecastJsonStr) throws JSONException {
-            final String OWM_POSTER = "results";
-            final String FILE_PATH = "poster_path";
-            final String ORIGINAL_TITLE="original_title";
-            final String OVERVIEW="overview";
-            final String User_RATING="vote_average";
-            final String RELEASE="release_date";
-
-            JSONObject forecastJson = new JSONObject(forecastJsonStr);
-            JSONArray movieArray = forecastJson.getJSONArray(OWM_POSTER);
-             resultStrs = new String[movieArray.length()];
-            movie_title=new String[movieArray.length()];
-            movie_plot=new String[movieArray.length()];
-            user_rating=new String[movieArray.length()];
-            release_date=new String[movieArray.length()];
-            for (int i = 0; i < movieArray.length(); i++) {
-
-                JSONObject movie = movieArray.getJSONObject(i);
-
-                String file_name = movie.getString(FILE_PATH);
-                String title=movie.getString(ORIGINAL_TITLE);
-                String plot=movie.getString(OVERVIEW);
-                String userRating=movie.getString(User_RATING);
-                String release=movie.getString(RELEASE);
-                                resultStrs[i] = "http://image.tmdb.org/t/p/w185/" +file_name;
-              movie_title[i]=title;
-                movie_plot[i]=plot;
-                user_rating[i]= userRating;
-                release_date[i]=release;
-            }
-
-            return resultStrs;
-        }
-
-        @Override
-        protected void onPostExecute(String[] resultStrs) {
-            if (resultStrs != null) {
-                mAdapter = new PhotoAlbumAdapter(new ArrayList<>(Arrays.asList(resultStrs)), getContext());
-                recyclerView.setAdapter(mAdapter);
-                mAdapter.SetOnItemClickListener(MainActivityFragment.this);
-
-
-            }
-
-        }
+    public void isTwoPain(boolean mTwoPane) {
+        isTablet=mTwoPane;
     }
 }
