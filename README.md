@@ -1,7 +1,7 @@
 # P1-Popular-Movie
 
-This is my Udacity Project.It is Android Movie app which shows the latest movies that could be sorted on basis of public Vote 
-and popularity.On clicking a movie poster user could view its viedeo,reviews and other detail.
+This is my Udacity Project.It is a Android Movie app which shows the latest movies that could be sorted on basis of public Vote 
+and popularity.On clicking a movie poster user could view its videos,reviews and other detail.
 
 ## Library Used
 - Picasso Library
