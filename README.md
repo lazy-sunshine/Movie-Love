@@ -16,6 +16,7 @@ and popularity.On clicking a movie poster user could view its videos,reviews and
  - Using picasso,the posters are cached so that the app would work even without internet.
  - User could sort movie based on popularity or public vote.
  - Animation is used.
+ - It provide compatiblity with tablets and other sizes .
  
 ##Licence
 The content of this repository is licensed under a [Creative Commons Attribution License](http://creativecommons.org/licenses/by/3.0/us/)
