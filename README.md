@@ -20,6 +20,7 @@ and popularity.On clicking a movie poster user could view its videos,reviews and
  - It cached movie details also once loaded from internet.
  
 
-
+##Licence
+The content of this repository is licensed under a [Creative Commons Attribution License](http://creativecommons.org/licenses/by/3.0/us/)
  
 
